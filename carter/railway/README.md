@@ -160,7 +160,7 @@ Create a service `compass-mock`, set `PORT=4010` and
 (`railway up . --path-as-root --service compass-mock`). Point `COMPASS_BASE_URL` at it as
 shown above. It serves a deterministic demo dataset: 10 Bo district facilities, a rolling
 13 months, about 8,300 ANC/maternal tallies and 1,850 inpatient discharges. The dataset is
-described in [`compasslink/docs/data-model.md`](../../../compasslink/docs/data-model.md).
+described in [`compasslink/docs/data-model.md`](https://github.com/agogodavid/compasslink/blob/main/docs/data-model.md) (private repo).
 
 ## 4. Analytics
 
