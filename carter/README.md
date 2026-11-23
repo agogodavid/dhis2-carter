@@ -40,6 +40,11 @@ Stop with `./scripts/down.sh` (`--reset` also wipes the database and the downloa
 Swap in a Carter test snapshot or empty database by changing `DHIS2_DB_DUMP_URL`
 (then `./scripts/down.sh --reset`).
 
+## Hosting on Railway
+
+`railway/` has Railway services for DHIS2, PostGIS (with first-boot demo load and admin
+password hardening) and the CompassLink cron job. See [railway/README.md](railway/README.md).
+
 ## Running Carter's own build of DHIS2
 
 The default uses the official release image (identical to this source). To run a build
