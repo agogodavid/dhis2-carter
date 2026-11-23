@@ -128,16 +128,20 @@ with `DHIS2_ADMIN_PASSWORD` must work. If the postgis logs showed
    Set `DHIS2_API_TOKEN` with `railway variables --service compasslink --set … >/dev/null`.
    The CLI echoes variable values, so discard its output.
 
-4. Deploy it, then set the cron schedule in the dashboard (see the caveat above):
+4. Deploy it, then set the cron schedule (see the caveat above):
 
    ```bash
    cd compasslink
-   railway up --service compasslink
+   railway up . --path-as-root --service compasslink
    ```
 
-The image's default command is `compasslink sync`. Each deploy runs one sync, and with
-the cron schedule set it runs every hour at :00 UTC (Railway allows intervals of 5 minutes
-or more) and exits. A run that ends with DHIS2 conflicts exits with code 2 and shows as
+   Without `--path-as-root`, the CLI uploads the whole linked project folder and the
+   build fails.
+
+The image's default command is `compasslink sync`. With the cron schedule set it runs every
+hour at :00 UTC (Railway allows intervals of 5 minutes or more) and exits. A deploy does
+**not** start a run. To run one now, use *Run now* on the cron service in the dashboard, or
+the GraphQL mutation `deploymentInstanceExecutionCreate(input: {serviceInstanceId})`. A run that ends with DHIS2 conflicts exits with code 2 and shows as
 failed in Railway. The command is chosen with variables:
 
 | Variable | Effect |
@@ -152,8 +156,25 @@ It has no secrets of its own: every `${VAR}` comes from the service's variables.
 ### Optional: mock Compass
 
 Create a service `compass-mock`, set `PORT=4010` and
-`COMPASSLINK_ENTRY=scripts/mock-compass.js`, and deploy the `compasslink/` directory to it.
-Point `COMPASS_BASE_URL` at it as shown above.
+`COMPASSLINK_ENTRY=scripts/mock-compass.js`, and deploy the `compasslink/` directory to it
+(`railway up . --path-as-root --service compass-mock`). Point `COMPASS_BASE_URL` at it as
+shown above. It serves a deterministic demo dataset: 10 Bo district facilities, a rolling
+13 months, about 8,300 ANC/maternal tallies and 1,850 inpatient discharges. The dataset is
+described in [`compasslink/docs/data-model.md`](../../../compasslink/docs/data-model.md).
+
+## 4. Analytics
+
+DHIS2 dashboards, Data Visualizer and Maps read **analytics tables**, not raw data. On a
+fresh instance they don't exist yet, so every dashboard shows *"There's a problem with the
+generated analytics"*. Generate them under *Data Administration → Analytics Tables*, or:
+
+```bash
+curl -u admin:… -X POST "https://dhis2-production.up.railway.app/api/resourceTables/analytics?lastYears=2"
+```
+
+A run takes about 5 minutes on this instance. Data CompassLink writes appears on dashboards
+only after the next generation, so schedule a nightly job under *Scheduler → Add job →
+Analytics table* (for example `0 15 2 * * ?`, last 2 years).
 
 ## Notes
 
@@ -161,9 +182,12 @@ Point `COMPASS_BASE_URL` at it as shown above.
   2.43.2.1 instance. Ngelehun CHC and Baomahun CHC are assigned to both the data set and the
   program; Bo district is not assigned to the program. For any other instance, check them
   with `compasslink inspect <uid>`.
-- **Verified sync, 2026-11-23:** 84 mock records produced 8 aggregate values, with 14
-  current-month records held back by `skipOpenPeriods`, and 42 events, with 0 conflicts.
-  A second run updated the same 42 events and created no duplicates.
+- **Verified sync, 2026-11-23 (demo dataset):** 10,132 Compass records produced 1,680
+  monthly data values and 1,852 inpatient events, with 531 current-month tallies held back,
+  2 deliberate bad rows reported as mapping issues, and 0 DHIS2 conflicts.
+- **Totals include the demo DB's own values:** the Sierra Leone database also has ANC
+  values for these facilities under other category option combos (age bands). Analytics
+  totals are demo plus Compass data. Filter on *Fixed/Outreach* to see CompassLink's part.
 - **Not production-grade:** this is test infrastructure. For production DHIS2, use managed
   backups for `postgis`, plan memory and analytics capacity, and follow
   [dhis2/docker-deployment](https://github.com/dhis2/docker-deployment).
