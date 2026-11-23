@@ -18,13 +18,14 @@ DHIS2 at https://dhis2-production.up.railway.app. Generated secrets are in
 > **Railway CLI caveat (CLI 4.36):** `railway up` applies the *build* section of
 > `railway.json` but **not** the *deploy* section (start command, cron schedule, health
 > check, restart policy), and `railway environment edit` reported "No changes to apply".
-> The images therefore don't rely on start commands, and these deploy settings must be set
-> in the dashboard (*service → Settings*):
+> The images therefore don't rely on start commands. Set these deploy settings in the
+> dashboard (*service → Settings*) or through Railway's GraphQL API
+> (`serviceInstanceUpdate`). The deployed instance already has the first two:
 >
 > | Service | Setting |
 > |---|---|
-> | `compasslink` | Cron Schedule `0 * * * *`, Restart Policy **Never** |
-> | `dhis2` | Healthcheck Path `/api/ping`, timeout 900 s |
+> | `compasslink` | Cron Schedule `0 * * * *`, Restart Policy **Never** (set) |
+> | `dhis2` | Healthcheck Path `/api/ping`, timeout 600 s (set; applies from the next deploy) |
 > | `compass-mock` | Serverless / sleep when idle (optional) |
 
 DHIS2 is an always-on Java server: it needs **≥ 4 GB RAM** on its service, and
