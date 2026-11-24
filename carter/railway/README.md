@@ -88,7 +88,7 @@ Deploy it:
 
 ```bash
 cd dhis2-carter/carter/railway/dhis2
-railway up --service dhis2
+railway up . --path-as-root --service dhis2
 ```
 
 Wait for the health check at `/api/ping` to pass. The first boot runs database migrations
@@ -173,8 +173,13 @@ curl -u admin:… -X POST "https://dhis2-production.up.railway.app/api/resourceT
 ```
 
 A run takes about 5 minutes on this instance. Data CompassLink writes appears on dashboards
-only after the next generation, so schedule a nightly job under *Scheduler → Add job →
-Analytics table* (for example `0 15 2 * * ?`, last 2 years).
+only after the next generation.
+
+**The nightly rebuild exists but is switched off**, because this is a demo instance. In the
+*Scheduler* app it's called **CompassLink - nightly analytics refresh (OFF - enable when
+developing CompassLink)** (job `cQd8Sl75tiB`). It runs daily at 02:15 UTC, after the 02:00
+sync, and rebuilds the last 2 years. Enable it while developing CompassLink and disable it
+afterwards.
 
 ## Notes
 
